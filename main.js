@@ -10,7 +10,7 @@
 
 'use strict';
 
-const fs = require("fs");
+const fs = require('fs');
 const path = require('path');
 const nconf = require('nconf');
 const request = require('superagent');
@@ -47,7 +47,12 @@ request
 
       return;
     }
+    res.body.destination = destination;
     requestHandler
-      .saveFile(res.body, destination)
-      .then(requestHandler.updateEXIF);
+      .saveFile(res.body)
+      .then(requestHandler.updateEXIF)
+      .then(requestHandler.linkFile)
+      .catch((err) => {
+        console.log(err);
+      });
   });
