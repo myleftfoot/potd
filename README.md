@@ -3,7 +3,9 @@ Picture Of The Day CLI tool. Downloads the latest picture of the day from NASA.
 
 ### requirements
 node
+
 npm
+
 NASA api key. Get one at https://api.nasa.gov
 
 ### installation
