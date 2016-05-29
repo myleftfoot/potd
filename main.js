@@ -11,48 +11,42 @@
 'use strict';
 
 const fs = require('fs');
-const path = require('path');
 const nconf = require('nconf');
-const request = require('superagent');
-var progress = require('superagent-progress');
-const requestHandler = require('./lib/request_handler');
+var RequestHandler = require('./lib/request_handler');
 
 function getUserHome() {
-  return process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'];
+  return process.env['HOME'];
 }
 
-nconf.argv()
+// Read configurations
+nconf
+  .argv()
   .env()
   .file({file: getUserHome() + '/.potd/config.json'});
 
-let apiKey = nconf.get('api_key');
-let destination = nconf.get('destination_folder');
+// set default configurations
+nconf.defaults({
+  'api_key': 'DEMO_KEY',
+  'destination_folder': '.',
+  'symlink_latest': false,
+  'clear_exif': false,
+  'update_exif': false
+});
 
 console.log('NASA picture of the day.');
 console.log('Retrieving picture info.');
 
-request
-  .get("https://api.nasa.gov/planetary/apod")
-  .query({api_key: apiKey})
-  .set('Content-Type', 'application/json')
-  .set('Accept', 'application/json')
-  .use(progress)
-  .end((err, res) => {
-    if (err) {
-      if (err.response && err.response.text) {
-        console.log(err.response.text);
-      } else {
-        console.log(err);
-      }
+if(nconf.get('api_key') === 'DEMO_KEY') {
+  console.warn('WARNING: api_key not set using DEMO_KEY. Please get an api key from https://api.nasa.gov/');
+}
 
-      return;
-    }
-    res.body.destination = destination;
-    requestHandler
-      .saveFile(res.body)
-      .then(requestHandler.updateEXIF)
-      .then(requestHandler.linkFile)
-      .catch((err) => {
-        console.log(err);
-      });
+var handler = new RequestHandler(nconf);
+
+handler
+  .retrievePOTD()
+  .then(handler.saveFile)
+  .then(handler.updateEXIF)
+  .then(handler.linkFile)
+  .catch((err) => {
+    console.log(err);
   });
