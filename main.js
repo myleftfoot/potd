@@ -46,6 +46,7 @@ handler
   .retrievePOTD()
   .then(handler.saveFile)
   .then(handler.updateEXIF)
+  .then(handler.convertToPNG)
   .then(handler.linkFile)
   .catch((err) => {
     console.log(err);
